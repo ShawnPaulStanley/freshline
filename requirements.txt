@@ -1,5 +1,7 @@
 # Runtime dependencies for FreshLine
 # Recommended Python: 3.12 or 3.13
+# Includes CLI, desktop GUI, and FastAPI web deployment stack.
+# Web UI is vanilla HTML/CSS/JS (no npm packages required).
 
 fastapi==0.115.6
 groq==0.13.0

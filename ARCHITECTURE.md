@@ -8,7 +8,10 @@
 
 ```
 app/
-├── cli.py              ← UI layer (terminal). Replace with FastAPI for web.
+├── cli.py              ← UI layer (terminal)
+├── api/
+│   ├── main.py         ← FastAPI routes + project import/export endpoints
+│   └── ui.html         ← Single-file browser UI served at /ui
 ├── config.py           ← All settings. Reads from .env
 ├── engine/             ← Core logic. This is the brain.
 │   ├── parser.py       ← INPUT: .java file path → OUTPUT: ParsedFile
@@ -110,61 +113,36 @@ avg_compression_ratio: float
 
 ---
 
-## How to Add a Web Frontend
+## Web API + UI (Implemented)
 
-The CLI (`cli.py`) is just a UI layer. The engine is completely decoupled. Here's the recommended approach:
+FreshLine already ships with a production-ready FastAPI service and built-in UI.
 
-### 1. Add FastAPI
-
-```bash
-pip install fastapi uvicorn python-multipart
-```
-
-### 2. Create `app/api/routes.py`
-
-```python
-from fastapi import FastAPI, UploadFile
-from app.engine.modernizer import modernize_project, analyze_project
-from app.config import UPLOADS_DIR, OUTPUT_DIR
-
-app = FastAPI(title="FreshLine API")
-
-@app.post("/api/upload")
-async def upload_project(file: UploadFile):
-    # Extract zip to uploads/
-    # Return { repo_id, file_count }
-
-@app.get("/api/analyze/{project_name}")
-async def analyze(project_name: str):
-    result = analyze_project(str(UPLOADS_DIR / project_name))
-    return result  # Has graph, dead code, noise stats
-
-@app.post("/api/modernize/{project_name}")
-async def modernize(project_name: str):
-    result = modernize_project(str(UPLOADS_DIR / project_name))
-    # ProjectResult dataclass → dict for JSON response
-    return {
-        "project_name": result.project_name,
-        "files_parsed": result.files_parsed,
-        "methods_converted": result.methods_converted,
-        "avg_confidence": result.avg_confidence,
-        "functions": [
-            {
-                "name": f.original_method.qualified_name,
-                "python_code": f.python_code,
-                "confidence": f.confidence,
-                "explanation": f.explanation,
-            }
-            for f in result.functions
-        ],
-    }
-```
-
-### 3. Run
+### Run locally
 
 ```bash
-uvicorn app.api.routes:app --reload
+uvicorn app.api.main:app --reload
 ```
+
+### Main routes
+
+- `GET /` -> redirect to `/ui`
+- `GET /ui` -> serves `app/api/ui.html`
+- `GET /health`
+- `GET /api/projects`
+- `POST /api/projects/upload-zip`
+- `POST /api/projects/import-github?repo_url=...`
+- `GET /api/projects/{project_name}/analyze`
+- `POST /api/projects/{project_name}/modernize?skip_dead_code=true`
+- `GET /api/projects/{project_name}/download-output`
+- `DELETE /api/projects/{project_name}/storage`
+- `GET /api/output`
+
+### UI behavior notes
+
+- The browser UI is static (no frontend framework build step).
+- Theme toggle supports Dark/Light mode and persists in local storage.
+- Download uses blob-based fetch to surface API errors cleanly before saving zip.
+- Cleanup endpoint can remove both uploaded source and generated output per project.
 
 ### Key Points for Frontend Dev
 - **All data classes are in `schemas.py`** — they map 1:1 to your API response types

@@ -1,6 +1,6 @@
 # FreshLine — Legacy Code Modernization Engine
 
-> CLI tool that converts legacy Java projects to modern Python using LLM-powered context optimization. Minimizes hallucinations by feeding only relevant code dependencies to the model.
+> CLI, desktop GUI, and web app that convert legacy Java projects to modern Python using LLM-powered context optimization. Minimizes hallucinations by feeding only relevant code dependencies to the model.
 
 ![Python](https://img.shields.io/badge/python-3.12%20or%203.13-blue?logo=python)
 ![License](https://img.shields.io/badge/license-MIT-green)
@@ -35,6 +35,7 @@ FreshLine solves this by walking the dependency graph and feeding only what each
 - Git installed (required for **Import GitHub...** in GUI)
 - Groq API key in `.env`
 - Input projects must contain `.java` files (Java-only pipeline)
+- Modern browser for `/ui` (Chrome, Edge, Firefox, Safari)
 
 ### 1. Clone & Install
 
@@ -97,6 +98,7 @@ Web UI flow:
 4. Click Analyze or Modernize
 5. Click Download Output to get a zip
 6. Click Cleanup Storage to delete uploaded/output files from server
+7. Use **Dark Mode / Light Mode** toggle to switch theme (preference is saved in browser storage)
 
 You'll get an interactive terminal menu:
 
@@ -142,6 +144,16 @@ If using the GUI (`python -m app.gui`):
 - `DELETE /api/projects/{project_name}/storage` - delete project input/output from server storage
 - `GET /api/output` - list output projects
 
+### Web UI Features
+
+- Upload Java project zip files directly from browser
+- Import repositories from GitHub URL
+- Analyze Java structure/dead code before conversion
+- Modernize with optional dead-code skipping
+- Download generated Python output as zip
+- Cleanup server storage for selected project
+- Dark/Light theme toggle with local preference persistence
+
 ---
 
 ## Deploy on Render
@@ -169,7 +181,8 @@ freshline/
 ├── app/
 │   ├── cli.py                ← Interactive terminal menu
 │   ├── api/
-│   │   └── main.py           ← FastAPI service for web deployment
+│   │   ├── main.py           ← FastAPI service for web deployment
+│   │   └── ui.html           ← Built-in web UI (served at /ui)
 │   ├── config.py             ← Groq key, token budgets, paths
 │   ├── engine/
 │   │   ├── parser.py         ← Java AST parser (javalang)
@@ -252,15 +265,16 @@ Each function gets a **confidence score**:
 
 ## For Shawn (Frontend Integration)
 
-> See [ARCHITECTURE.md](ARCHITECTURE.md) for the full breakdown of each module and how to hook up a web frontend.
+> See [ARCHITECTURE.md](ARCHITECTURE.md) for the full breakdown of each module and API/UI behavior.
 
-**TL;DR**: The engine functions in `app/engine/modernizer.py` return structured Python dataclasses. To add a web frontend:
+**TL;DR**: The web frontend is already integrated.
 
-1. Add FastAPI as a thin API layer that calls the existing engine functions
-2. Key functions to expose:
-   - `modernizer.analyze_project(path)` → returns graph + stats + dead code
-   - `modernizer.modernize_project(path)` → returns full conversion results
-3. All data classes are in `app/models/schemas.py` — they serialize cleanly to JSON
+1. FastAPI routes live in `app/api/main.py`
+2. Built-in browser UI lives in `app/api/ui.html`
+3. Core engine functions are still the main source of truth:
+       - `modernizer.analyze_project(path)` -> graph + stats + dead code
+       - `modernizer.modernize_project(path)` -> full conversion results
+4. All data classes in `app/models/schemas.py` serialize cleanly to JSON
 
 ---
 
@@ -273,6 +287,8 @@ Each function gets a **confidence score**:
 | LLM | Groq API (`llama-3.3-70b-versatile`) | Free tier, fast inference |
 | Token Counting | Word-based heuristic | No C compiler needed (unlike tiktoken) |
 | CLI | `rich` | Beautiful terminal UI |
+| Web API | `FastAPI` + `uvicorn` | Lightweight deployment-ready service |
+| Web UI | Vanilla HTML/CSS/JS | No frontend build pipeline required |
 | Config | `python-dotenv` | Clean env var management |
 
 ---
