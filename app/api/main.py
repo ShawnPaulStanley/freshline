@@ -9,7 +9,7 @@ from typing import Any
 
 from fastapi import FastAPI, File, HTTPException, Query, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, RedirectResponse
 
 from app.config import OUTPUT_DIR, UPLOADS_DIR
 from app.engine.modernizer import analyze_project, modernize_project
@@ -67,9 +67,9 @@ def _repo_name_from_url(repo_url: str) -> str:
     return name
 
 
-@app.get("/")
-def root() -> dict[str, str]:
-    return {"service": "FreshLine API", "status": "ok", "ui": "/ui", "docs": "/docs"}
+@app.get("/", include_in_schema=False)
+def root() -> RedirectResponse:
+    return RedirectResponse(url="/ui", status_code=307)
 
 
 @app.get("/ui", response_class=HTMLResponse, include_in_schema=False)
