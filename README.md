@@ -3,7 +3,6 @@
 > CLI, desktop GUI, and web app that convert legacy Java projects to modern Python using LLM-powered context optimization. Minimizes hallucinations by feeding only relevant code dependencies to the model.
 
 ![Python](https://img.shields.io/badge/python-3.12%20or%203.13-blue?logo=python)
-![License](https://img.shields.io/badge/license-MIT-green)
 
 ---
 
@@ -306,6 +305,3 @@ All config lives in `app/config.py`:
 
 ---
 
-## License
-
-MIT
