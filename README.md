@@ -77,6 +77,17 @@ Windows one-click option:
 - Double-click [run_gui.bat](run_gui.bat)
 - If dependencies are missing, the launcher installs `requirements.txt` automatically.
 
+Run web API locally:
+
+```bash
+uvicorn app.api.main:app --reload
+```
+
+API docs:
+
+- Swagger UI: `http://127.0.0.1:8000/docs`
+- OpenAPI JSON: `http://127.0.0.1:8000/openapi.json`
+
 You'll get an interactive terminal menu:
 
 ```
@@ -109,6 +120,33 @@ If using the GUI (`python -m app.gui`):
 4. Click **Modernize**
 5. Open generated files in `output/`
 
+### API Endpoints
+
+- `GET /health` - health check
+- `GET /api/projects` - list uploaded projects
+- `POST /api/projects/upload-zip` - upload a zip project
+- `GET /api/projects/{project_name}/analyze` - analyze Java project
+- `POST /api/projects/{project_name}/modernize?skip_dead_code=true` - run modernization
+- `GET /api/output` - list output projects
+
+---
+
+## Deploy on Render
+
+This repo is configured for Render with [render.yaml](render.yaml).
+
+1. Push code to GitHub
+2. In Render, choose **New +** -> **Blueprint**
+3. Select your `freshline` repository
+4. Set environment variable `GROQ_API_KEY` in Render dashboard
+5. Deploy
+
+Render start command is already configured:
+
+```bash
+uvicorn app.api.main:app --host 0.0.0.0 --port $PORT
+```
+
 ---
 
 ## Project Structure
@@ -117,6 +155,8 @@ If using the GUI (`python -m app.gui`):
 freshline/
 ├── app/
 │   ├── cli.py                ← Interactive terminal menu
+│   ├── api/
+│   │   └── main.py           ← FastAPI service for web deployment
 │   ├── config.py             ← Groq key, token budgets, paths
 │   ├── engine/
 │   │   ├── parser.py         ← Java AST parser (javalang)
@@ -134,6 +174,8 @@ freshline/
 ├── uploads/                  ← Drop Java project folders here (gitignored)
 ├── output/                   ← Converted Python projects appear here (gitignored)
 ├── requirements.txt
+├── render.yaml
+├── runtime.txt
 ├── .env.example
 └── .gitignore
 ```

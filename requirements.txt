@@ -1,8 +1,11 @@
 # Runtime dependencies for FreshLine
 # Recommended Python: 3.12 or 3.13
 
+fastapi==0.115.6
 groq==0.13.0
 javalang==0.13.0
 networkx==3.2.1
+python-multipart==0.0.20
 python-dotenv==1.0.1
 rich==13.9.4
+uvicorn==0.34.0
