@@ -4,3 +4,7 @@ __pycache__/
 .venv/
 uploads/
 output/
+test_output.txt
+test_results.txt
+*.log
+.gemini/
