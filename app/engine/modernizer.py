@@ -55,19 +55,19 @@ def modernize_project(
     output_dir.mkdir(parents=True, exist_ok=True)
 
     console.print(Panel(
-        f"[bold cyan]⚡ FRESHLINE — Modernizing: {project_name}[/bold cyan]",
+        f"[bold cyan]FRESHLINE - Modernizing: {project_name}[/bold cyan]",
         border_style="cyan"
     ))
 
     # ── Step 1: Parse ──────────────────────────────────────────────
-    console.print("\n[bold yellow]📂 Step 1: Parsing Java files...[/bold yellow]")
+    console.print("\n[bold yellow]Step 1: Parsing Java files...[/bold yellow]")
     parsed_files = parse_project(project_dir)
 
     files_parsed = len([pf for pf in parsed_files if not pf.parse_errors])
     files_failed = len([pf for pf in parsed_files if pf.parse_errors])
 
     for pf in parsed_files:
-        status = "✓" if not pf.parse_errors else "✗"
+        status = "OK" if not pf.parse_errors else "ERROR"
         fname = Path(pf.file_path).name
         class_count = len(pf.classes)
         method_count = len(pf.all_methods)
@@ -76,7 +76,7 @@ def modernize_project(
             console.print(f"    [red]Error: {err}[/red]")
 
     # ── Step 2: Build Dependency Graph ─────────────────────────────
-    console.print("\n[bold yellow]🕸️  Step 2: Building dependency graph...[/bold yellow]")
+    console.print("\n[bold yellow]Step 2: Building dependency graph...[/bold yellow]")
     dep_graph = DependencyGraph()
     dep_graph.build(parsed_files)
 
@@ -86,14 +86,14 @@ def modernize_project(
                   f"Cycles: {'Yes' if stats['has_cycles'] else 'No'}")
 
     # ── Step 3: Detect Dead Code & Noise ───────────────────────────
-    console.print("\n[bold yellow]🧹 Step 3: Detecting dead code & noise...[/bold yellow]")
+    console.print("\n[bold yellow]Step 3: Detecting dead code & noise...[/bold yellow]")
     dead_methods = detect_dead_methods(parsed_files)
     noise_summary = get_noise_summary(parsed_files)
 
     dead_names = {m.qualified_name for m in dead_methods}
     console.print(f"  Dead methods found: {len(dead_methods)}")
     for dm in dead_methods:
-        console.print(f"    [dim]✗ {dm.qualified_name}[/dim]")
+        console.print(f"    [dim]- {dm.qualified_name}[/dim]")
 
     console.print(f"  Noise ratio: {noise_summary['noise_ratio']:.1%} "
                   f"({noise_summary['noise_lines']} / {noise_summary['total_lines']} lines)")
@@ -116,7 +116,7 @@ def modernize_project(
             continue
         methods_to_convert.append(method)
 
-    console.print(f"\n[bold yellow]🔄 Step 4: Converting {len(methods_to_convert)} methods "
+    console.print(f"\n[bold yellow]Step 4: Converting {len(methods_to_convert)} methods "
                   f"(skipping {methods_skipped} dead)...[/bold yellow]")
 
     # ── Step 5: Modernize Each Method ──────────────────────────────
@@ -168,7 +168,7 @@ def modernize_project(
             # Show per-method stats
             conf_color = "green" if result.confidence >= 0.8 else "yellow" if result.confidence >= 0.5 else "red"
             console.print(
-                f"  ✓ {method.qualified_name}: "
+                f"  OK {method.qualified_name}: "
                 f"[{conf_color}]confidence={result.confidence:.0%}[/{conf_color}] | "
                 f"context={opt_ctx.optimized_total_lines}L/{opt_ctx.original_total_lines}L "
                 f"({opt_ctx.compression_ratio:.0%} compressed) | "
@@ -178,7 +178,7 @@ def modernize_project(
             progress.advance(task)
 
     # ── Step 6: Assemble Output ────────────────────────────────────
-    console.print(f"\n[bold yellow]📦 Step 6: Assembling output in {output_dir}...[/bold yellow]")
+    console.print(f"\n[bold yellow]Step 6: Assembling output in {output_dir}...[/bold yellow]")
     _assemble_output(results, output_dir, project_name)
 
     # ── Compute final stats ────────────────────────────────────────
@@ -242,7 +242,7 @@ def _assemble_output(
             lines.append("")
 
         module_path.write_text("\n".join(lines), encoding="utf-8")
-        console.print(f"  ✓ {module_path.name}")
+        console.print(f"  OK {module_path.name}")
 
     # Write a conversion report
     report_path = output_dir / "CONVERSION_REPORT.md"
@@ -258,8 +258,8 @@ def _assemble_output(
     ]
 
     for r in results:
-        conf_emoji = "🟢" if r.confidence >= 0.8 else "🟡" if r.confidence >= 0.5 else "🔴"
-        report_lines.append(f"### {conf_emoji} {r.original_method.qualified_name}")
+        conf_label = "HIGH" if r.confidence >= 0.8 else "MEDIUM" if r.confidence >= 0.5 else "LOW"
+        report_lines.append(f"### [{conf_label}] {r.original_method.qualified_name}")
         report_lines.append(f"- **Confidence**: {r.confidence:.0%}")
         report_lines.append(f"- **Context compression**: {r.context_stats.compression_ratio:.0%}")
         report_lines.append(f"- **Explanation**: {r.explanation}")
@@ -271,7 +271,7 @@ def _assemble_output(
         report_lines.append("")
 
     report_path.write_text("\n".join(report_lines), encoding="utf-8")
-    console.print(f"  ✓ {report_path.name}")
+    console.print(f"  OK {report_path.name}")
 
 
 def _print_summary(result: ProjectResult) -> None:
@@ -287,7 +287,7 @@ def _print_summary(result: ProjectResult) -> None:
         f"[bold]Output:[/bold] {result.output_dir}"
     )
 
-    console.print(Panel(summary, title="⚡ Conversion Complete", border_style="green"))
+    console.print(Panel(summary, title="Conversion Complete", border_style="green"))
 
 
 def _to_snake_case(name: str) -> str:
@@ -300,7 +300,7 @@ def _to_snake_case(name: str) -> str:
 def analyze_project(project_dir: str) -> dict:
     """Analyze a project without converting — returns stats and graph data."""
     console.print(Panel(
-        f"[bold cyan]🔍 Analyzing: {Path(project_dir).name}[/bold cyan]",
+        f"[bold cyan]Analyzing: {Path(project_dir).name}[/bold cyan]",
         border_style="cyan"
     ))
 

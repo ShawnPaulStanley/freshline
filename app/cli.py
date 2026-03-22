@@ -43,7 +43,7 @@ def main():
     # Check API key
     if not GROQ_API_KEY or GROQ_API_KEY == "your_groq_api_key_here":
         console.print(Panel(
-            "[bold red]⚠️  GROQ_API_KEY not configured![/bold red]\n\n"
+            "[bold red]GROQ_API_KEY not configured![/bold red]\n\n"
             "1. Get a free API key from [link=https://console.groq.com]console.groq.com[/link]\n"
             "2. Set it in [bold]freshline/.env[/bold]:\n"
             "   [cyan]GROQ_API_KEY=gsk_your_key_here[/cyan]",
@@ -69,7 +69,7 @@ def main():
         elif choice == "6":
             _show_settings()
         elif choice == "0":
-            console.print("\n[bold cyan]✌️  Peace out![/bold cyan]\n")
+            console.print("\n[bold cyan]Exiting.[/bold cyan]\n")
             break
         else:
             console.print("[red]Invalid choice. Try again.[/red]")
@@ -80,19 +80,19 @@ def _show_menu():
     table.add_column("Option", style="bold cyan", width=6)
     table.add_column("Action", style="white")
 
-    table.add_row("[1]", "📂 List projects in uploads/")
-    table.add_row("[2]", "🔍 Analyze project (parse + dep graph + dead code)")
-    table.add_row("[3]", "⚡ Modernize project (Java → Python)")
-    table.add_row("[4]", "📦 View output projects")
-    table.add_row("[5]", "📋 Copy sample project to uploads/")
-    table.add_row("[6]", "⚙️  Settings")
-    table.add_row("[0]", "🚪 Exit")
+    table.add_row("[1]", "List projects in uploads/")
+    table.add_row("[2]", "Analyze project (parse + dep graph + dead code)")
+    table.add_row("[3]", "Modernize project (Java -> Python)")
+    table.add_row("[4]", "View output projects")
+    table.add_row("[5]", "Copy sample project to uploads/")
+    table.add_row("[6]", "Settings")
+    table.add_row("[0]", "Exit")
 
-    console.print(Panel(table, title="[bold]⚡ FRESHLINE MENU[/bold]", border_style="cyan"))
+    console.print(Panel(table, title="[bold]FRESHLINE MENU[/bold]", border_style="cyan"))
 
 
 def _list_projects():
-    console.print("\n[bold yellow]📂 Projects in uploads/:[/bold yellow]")
+    console.print("\n[bold yellow]Projects in uploads/:[/bold yellow]")
 
     if not UPLOADS_DIR.exists():
         UPLOADS_DIR.mkdir(exist_ok=True)
@@ -171,7 +171,7 @@ def _analyze_project():
     if result["dead_methods"] > 0:
         console.print(f"\n[bold red]Dead methods (will be skipped during conversion):[/bold red]")
         for name in result["dead_method_names"]:
-            console.print(f"  [dim]✗ {name}[/dim]")
+            console.print(f"  [dim]- {name}[/dim]")
 
     # Show dependency graph as text
     console.print(f"\n[bold yellow]Dependency Graph:[/bold yellow]")
@@ -189,7 +189,7 @@ def _modernize_project():
 
     # Check API key
     if not GROQ_API_KEY or GROQ_API_KEY == "your_groq_api_key_here":
-        console.print("[bold red]⚠️  Set GROQ_API_KEY in .env first![/bold red]")
+        console.print("[bold red]Set GROQ_API_KEY in .env first![/bold red]")
         return
 
     skip_dead = Prompt.ask(
@@ -205,15 +205,15 @@ def _modernize_project():
             project_dir=str(project_dir),
             skip_dead_code=skip_dead,
         )
-        console.print(f"\n[bold green]✅ Output saved to: {result.output_dir}[/bold green]")
+        console.print(f"\n[bold green]Output saved to: {result.output_dir}[/bold green]")
     except Exception as e:
-        console.print(f"\n[bold red]❌ Error: {e}[/bold red]")
+        console.print(f"\n[bold red]Error: {e}[/bold red]")
         import traceback
         console.print(traceback.format_exc())
 
 
 def _view_outputs():
-    console.print("\n[bold yellow]📦 Output projects:[/bold yellow]")
+    console.print("\n[bold yellow]Output projects:[/bold yellow]")
 
     if not OUTPUT_DIR.exists():
         OUTPUT_DIR.mkdir(exist_ok=True)
@@ -231,9 +231,9 @@ def _view_outputs():
         console.print(f"\n  [bold]{output_dir.name}/[/bold]")
         for pf in py_files:
             lines = len(pf.read_text(encoding="utf-8").splitlines())
-            console.print(f"    📄 {pf.name} ({lines} lines)")
+            console.print(f"    - {pf.name} ({lines} lines)")
         if report.exists():
-            console.print(f"    📊 CONVERSION_REPORT.md")
+            console.print(f"    - CONVERSION_REPORT.md")
 
         # Ask if they want to view a file
         view = Prompt.ask(
@@ -276,7 +276,7 @@ def _copy_sample():
         shutil.rmtree(dest)
 
     shutil.copytree(sample_src, dest)
-    console.print("[bold green]✅ Copied sample banking-app to uploads/[/bold green]")
+    console.print("[bold green]Copied sample banking-app to uploads/[/bold green]")
 
 
 def _show_settings():

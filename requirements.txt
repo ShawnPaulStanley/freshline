@@ -1,5 +1,8 @@
+# Runtime dependencies for FreshLine
+# Recommended Python: 3.12 or 3.13
+
+groq==0.13.0
 javalang==0.13.0
 networkx==3.2.1
-groq==0.13.0
-rich==13.9.4
 python-dotenv==1.0.1
+rich==13.9.4

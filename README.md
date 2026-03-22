@@ -1,8 +1,8 @@
-# ⚡ FreshLine — Legacy Code Modernization Engine
+# FreshLine — Legacy Code Modernization Engine
 
 > CLI tool that converts legacy Java projects to modern Python using LLM-powered context optimization. Minimizes hallucinations by feeding only relevant code dependencies to the model.
 
-![Python](https://img.shields.io/badge/python-3.12+-blue?logo=python)
+![Python](https://img.shields.io/badge/python-3.12%20or%203.13-blue?logo=python)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
 ---
@@ -29,6 +29,13 @@ FreshLine solves this by walking the dependency graph and feeding only what each
 
 ## Quick Start
 
+### Requirements
+
+- Python **3.12** or **3.13** recommended
+- Git installed (required for **Import GitHub...** in GUI)
+- Groq API key in `.env`
+- Input projects must contain `.java` files (Java-only pipeline)
+
 ### 1. Clone & Install
 
 ```bash
@@ -51,6 +58,8 @@ Edit `.env`:
 GROQ_API_KEY=gsk_your_actual_key_here
 ```
 
+You can copy all available settings from `.env.example`.
+
 ### 3. Run
 
 ```bash
@@ -72,7 +81,7 @@ You'll get an interactive terminal menu:
 
 ```
 ═══════════════════════════════════
-   ⚡ FRESHLINE MENU
+       FRESHLINE MENU
 ═══════════════════════════════════
    [1] List projects in uploads/
    [2] Analyze project (parse + dep graph + dead code)
@@ -180,9 +189,9 @@ When you modernize the sample banking app, you get:
 | `CONVERSION_REPORT.md` | Per-method confidence scores and conversion details |
 
 Each function gets a **confidence score**:
-- 🟢 **90-100%** — straight conversion, full context available
-- 🟡 **50-89%** — good but had to make assumptions
-- 🔴 **0-49%** — significant guesswork, review carefully
+- **90-100%** — straight conversion, full context available
+- **50-89%** — good but had to make assumptions
+- **0-49%** — significant guesswork, review carefully
 
 ---
 
