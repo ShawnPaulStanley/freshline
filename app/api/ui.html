@@ -20,6 +20,22 @@
       --output-text: #e2e8f0;
       --radius: 14px;
       --shadow: 0 8px 28px rgba(2, 6, 23, 0.06);
+      --input-bg: #ffffff;
+    }
+
+    [data-theme="dark"] {
+      --bg: #0f172a;
+      --card: #1e293b;
+      --line: #334155;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+      --primary: #3b82f6;
+      --primary-hover: #60a5fa;
+      --surface: #334155;
+      --output: #020617;
+      --output-text: #e2e8f0;
+      --shadow: 0 8px 28px rgba(0, 0, 0, 0.3);
+      --input-bg: #0f172a;
     }
 
     * { box-sizing: border-box; }
@@ -27,45 +43,49 @@
     body {
       margin: 0;
       font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-      background: linear-gradient(180deg, #eef2ff 0, var(--bg) 220px);
+      background: var(--bg);
       color: var(--text);
       min-height: 100vh;
+      transition: background-color 0.3s ease, color 0.3s ease;
     }
 
     .container {
-      max-width: 1020px;
-      margin: 28px auto;
-      padding: 0 16px 24px;
+      max-width: 900px;
+      margin: 40px auto;
+      padding: 0 20px 30px;
     }
 
     .hero {
-      margin-bottom: 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
     }
 
     .title {
       margin: 0;
-      font-size: clamp(2rem, 4vw, 2.5rem);
-      letter-spacing: -0.03em;
+      font-size: clamp(1.8rem, 3.5vw, 2.2rem);
+      letter-spacing: -0.02em;
       font-weight: 700;
     }
 
     .subtitle {
-      margin-top: 8px;
+      margin-top: 6px;
       color: var(--muted);
-      font-size: 1.02rem;
+      font-size: 1rem;
     }
 
     .grid {
       display: grid;
       grid-template-columns: 1fr;
-      gap: 12px;
+      gap: 16px;
     }
 
     .card {
       background: var(--card);
       border: 1px solid var(--line);
       border-radius: var(--radius);
-      padding: 16px;
+      padding: 20px;
       box-shadow: var(--shadow);
     }
 
@@ -96,13 +116,15 @@
     input[type="text"],
     select {
       padding: 10px 12px;
-      background: #fff;
+      background: var(--input-bg);
+      color: var(--text);
       min-height: 42px;
     }
 
     input[type="file"] {
       padding: 8px;
-      background: #fff;
+      background: var(--input-bg);
+      color: var(--text);
       min-height: 42px;
     }
 
@@ -115,7 +137,7 @@
     }
 
     button {
-      padding: 10px 14px;
+      padding: 10px 16px;
       min-height: 42px;
       background: var(--surface);
       color: var(--text);
@@ -137,6 +159,23 @@
     .btn-primary:hover {
       background: var(--primary-hover);
       border-color: var(--primary-hover);
+    }
+
+    .btn-theme {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      color: var(--text);
+      font-size: 0.85rem;
+      padding: 8px 14px;
+      min-height: 38px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 500;
+      transition: all .2s ease;
+    }
+
+    .btn-theme:hover {
+      background: var(--line);
     }
 
     .muted {
@@ -166,8 +205,8 @@
       padding: 10px 12px;
       border-radius: 10px;
       border: 1px solid var(--line);
-      background: #f8fafc;
-      color: #1f2937;
+      background: var(--surface);
+      color: var(--text);
       font-size: 0.92rem;
     }
 
@@ -181,7 +220,7 @@
     .metric {
       border: 1px solid var(--line);
       border-radius: 10px;
-      background: #fff;
+      background: var(--input-bg);
       padding: 10px 12px;
     }
 
@@ -221,8 +260,11 @@
 <body>
   <div class="container">
     <div class="hero">
-      <h1 class="title">FreshLine</h1>
-      <p class="subtitle">Modernize Java projects to Python with a clean, guided workflow.</p>
+      <div>
+        <h1 class="title">FreshLine</h1>
+        <p class="subtitle">Modernize Java projects to Python with a clean, guided workflow.</p>
+      </div>
+      <button id="themeToggle" class="btn-theme">Toggle Theme</button>
     </div>
 
     <div class="grid">
@@ -271,6 +313,30 @@
   </div>
 
   <script>
+    const themeToggle = document.getElementById('themeToggle');
+    let isDark = localStorage.getItem('theme') === 'dark';
+    
+    function updateThemeBtn() {
+      themeToggle.textContent = isDark ? 'Light Mode' : 'Dark Mode';
+    }
+
+    if (isDark) {
+      document.documentElement.setAttribute('data-theme', 'dark');
+    }
+    updateThemeBtn();
+
+    themeToggle.addEventListener('click', () => {
+      isDark = !isDark;
+      if (isDark) {
+        document.documentElement.setAttribute('data-theme', 'dark');
+        localStorage.setItem('theme', 'dark');
+      } else {
+        document.documentElement.removeAttribute('data-theme');
+        localStorage.setItem('theme', 'light');
+      }
+      updateThemeBtn();
+    });
+
     const projectSelect = document.getElementById('projectSelect');
     const output = document.getElementById('output');
     const uploadInfo = document.getElementById('uploadInfo');
