@@ -87,6 +87,14 @@ API docs:
 
 - Swagger UI: `http://127.0.0.1:8000/docs`
 - OpenAPI JSON: `http://127.0.0.1:8000/openapi.json`
+- Built-in web UI: `http://127.0.0.1:8000/ui`
+
+Web UI flow:
+
+1. Open `/ui`
+2. Upload Java project zip
+3. Select project
+4. Click Analyze or Modernize
 
 You'll get an interactive terminal menu:
 

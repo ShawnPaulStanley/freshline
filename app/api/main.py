@@ -8,11 +8,13 @@ from typing import Any
 
 from fastapi import FastAPI, File, HTTPException, Query, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import HTMLResponse
 
 from app.config import OUTPUT_DIR, UPLOADS_DIR
 from app.engine.modernizer import analyze_project, modernize_project
 
 app = FastAPI(title="FreshLine API", version="1.0.0")
+UI_FILE = Path(__file__).with_name("ui.html")
 
 app.add_middleware(
     CORSMiddleware,
@@ -47,7 +49,14 @@ def _java_file_count(project_dir: Path) -> int:
 
 @app.get("/")
 def root() -> dict[str, str]:
-    return {"service": "FreshLine API", "status": "ok"}
+    return {"service": "FreshLine API", "status": "ok", "ui": "/ui", "docs": "/docs"}
+
+
+@app.get("/ui", response_class=HTMLResponse, include_in_schema=False)
+def ui() -> str:
+    if not UI_FILE.exists():
+        raise HTTPException(status_code=500, detail="UI file is missing")
+    return UI_FILE.read_text(encoding="utf-8")
 
 
 @app.get("/health")

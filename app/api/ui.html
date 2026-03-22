@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FreshLine</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 0; background: #f6f7f9; color: #1f2937; }
+    .container { max-width: 960px; margin: 24px auto; padding: 0 16px; }
+    h1 { margin: 0 0 12px; }
+    .card { background: #fff; border: 1px solid #e5e7eb; border-radius: 8px; padding: 16px; margin-bottom: 12px; }
+    .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+    input[type="file"], select, button { padding: 8px; }
+    button { cursor: pointer; }
+    pre { white-space: pre-wrap; background: #111827; color: #e5e7eb; padding: 12px; border-radius: 8px; min-height: 180px; }
+    .muted { color: #6b7280; font-size: 14px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>FreshLine</h1>
+    <p class="muted">Upload a Java project zip, analyze it, and modernize it to Python.</p>
+
+    <div class="card">
+      <h3>1) Upload project zip</h3>
+      <div class="row">
+        <input id="zipFile" type="file" accept=".zip" />
+        <button id="uploadBtn">Upload</button>
+        <span id="uploadInfo" class="muted"></span>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>2) Select project</h3>
+      <div class="row">
+        <select id="projectSelect" style="min-width: 260px"></select>
+        <button id="refreshBtn">Refresh Projects</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>3) Run</h3>
+      <div class="row">
+        <label><input id="skipDead" type="checkbox" checked /> Skip dead code</label>
+        <button id="analyzeBtn">Analyze</button>
+        <button id="modernizeBtn">Modernize</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Output</h3>
+      <pre id="output"></pre>
+    </div>
+  </div>
+
+  <script>
+    const projectSelect = document.getElementById('projectSelect');
+    const output = document.getElementById('output');
+    const uploadInfo = document.getElementById('uploadInfo');
+
+    function print(data) {
+      if (typeof data === 'string') {
+        output.textContent = data;
+      } else {
+        output.textContent = JSON.stringify(data, null, 2);
+      }
+    }
+
+    async function api(url, options = {}) {
+      const res = await fetch(url, options);
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        const message = json.detail || JSON.stringify(json) || `Request failed (${res.status})`;
+        throw new Error(message);
+      }
+      return json;
+    }
+
+    async function refreshProjects() {
+      try {
+        const data = await api('/api/projects');
+        projectSelect.innerHTML = '';
+        for (const name of data.projects) {
+          const option = document.createElement('option');
+          option.value = name;
+          option.textContent = name;
+          projectSelect.appendChild(option);
+        }
+        if (!data.projects.length) {
+          const option = document.createElement('option');
+          option.textContent = 'No projects found';
+          option.value = '';
+          projectSelect.appendChild(option);
+        }
+      } catch (err) {
+        print(`Failed to load projects: ${err.message}`);
+      }
+    }
+
+    document.getElementById('refreshBtn').addEventListener('click', refreshProjects);
+
+    document.getElementById('uploadBtn').addEventListener('click', async () => {
+      const fileInput = document.getElementById('zipFile');
+      if (!fileInput.files.length) {
+        print('Select a .zip file first.');
+        return;
+      }
+
+      const form = new FormData();
+      form.append('file', fileInput.files[0]);
+      uploadInfo.textContent = 'Uploading...';
+
+      try {
+        const data = await api('/api/projects/upload-zip', { method: 'POST', body: form });
+        uploadInfo.textContent = `Uploaded: ${data.project_name} (${data.java_files} Java files)`;
+        await refreshProjects();
+        if (data.project_name) {
+          projectSelect.value = data.project_name;
+        }
+        print(data);
+      } catch (err) {
+        uploadInfo.textContent = 'Upload failed';
+        print(`Upload failed: ${err.message}`);
+      }
+    });
+
+    document.getElementById('analyzeBtn').addEventListener('click', async () => {
+      const project = projectSelect.value;
+      if (!project) {
+        print('Select a project first.');
+        return;
+      }
+      try {
+        print('Analyzing...');
+        const data = await api(`/api/projects/${encodeURIComponent(project)}/analyze`);
+        print(data);
+      } catch (err) {
+        print(`Analyze failed: ${err.message}`);
+      }
+    });
+
+    document.getElementById('modernizeBtn').addEventListener('click', async () => {
+      const project = projectSelect.value;
+      if (!project) {
+        print('Select a project first.');
+        return;
+      }
+      const skipDead = document.getElementById('skipDead').checked;
+      try {
+        print('Modernizing... This may take a while.');
+        const data = await api(`/api/projects/${encodeURIComponent(project)}/modernize?skip_dead_code=${skipDead}`, {
+          method: 'POST'
+        });
+        const summary = {
+          project_name: data.project_name,
+          files_parsed: data.files_parsed,
+          methods_converted: data.methods_converted,
+          methods_skipped: data.methods_skipped,
+          avg_confidence: data.avg_confidence,
+          avg_compression_ratio: data.avg_compression_ratio,
+          output_dir: data.output_dir,
+        };
+        print(summary);
+      } catch (err) {
+        print(`Modernize failed: ${err.message}`);
+      }
+    });
+
+    refreshProjects();
+  </script>
+</body>
+</html>
