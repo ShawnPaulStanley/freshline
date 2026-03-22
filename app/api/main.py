@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import shutil
+import subprocess
 import zipfile
 from dataclasses import asdict, is_dataclass
 from pathlib import Path
@@ -45,6 +46,25 @@ def _project_path(project_name: str) -> Path:
 
 def _java_file_count(project_dir: Path) -> int:
     return sum(1 for _ in project_dir.rglob("*.java"))
+
+
+def _repo_name_from_url(repo_url: str) -> str:
+    normalized = repo_url.strip().rstrip("/")
+    if normalized.endswith(".git"):
+        normalized = normalized[:-4]
+
+    if "/" not in normalized:
+        return ""
+
+    name = normalized.split("/")[-1].strip()
+    if not name:
+        return ""
+
+    invalid_chars = set('\\/:*?"<>|')
+    if any(ch in invalid_chars for ch in name):
+        return ""
+
+    return name
 
 
 @app.get("/")
@@ -117,6 +137,47 @@ def upload_project_zip(file: UploadFile = File(...)) -> dict[str, Any]:
         file.file.close()
         if temp_zip.exists():
             temp_zip.unlink(missing_ok=True)
+
+
+@app.post("/api/projects/import-github")
+def import_project_github(
+    repo_url: str = Query(..., description="Git repository URL"),
+    overwrite: bool = Query(True, description="Overwrite existing project folder if present"),
+) -> dict[str, Any]:
+    repo_name = _repo_name_from_url(repo_url)
+    if not repo_name:
+        raise HTTPException(status_code=400, detail="Invalid repository URL")
+
+    if shutil.which("git") is None:
+        raise HTTPException(status_code=500, detail="Git is not installed on server")
+
+    project_dir = UPLOADS_DIR / repo_name
+
+    if project_dir.exists():
+        if not overwrite:
+            raise HTTPException(status_code=409, detail=f"Project '{repo_name}' already exists")
+        shutil.rmtree(project_dir)
+
+    proc = subprocess.run(
+        ["git", "clone", repo_url, str(project_dir)],
+        capture_output=True,
+        text=True,
+        check=False,
+        timeout=240,
+    )
+
+    if proc.returncode != 0:
+        details = proc.stderr.strip() or proc.stdout.strip() or "git clone failed"
+        raise HTTPException(status_code=400, detail=details)
+
+    java_files = _java_file_count(project_dir)
+
+    return {
+        "project_name": repo_name,
+        "project_dir": str(project_dir),
+        "repo_url": repo_url,
+        "java_files": java_files,
+    }
 
 
 @app.get("/api/projects/{project_name}/analyze")

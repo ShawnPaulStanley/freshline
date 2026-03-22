@@ -92,7 +92,7 @@ API docs:
 Web UI flow:
 
 1. Open `/ui`
-2. Upload Java project zip
+2. Upload Java project zip or import a GitHub repository URL
 3. Select project
 4. Click Analyze or Modernize
 
@@ -133,6 +133,7 @@ If using the GUI (`python -m app.gui`):
 - `GET /health` - health check
 - `GET /api/projects` - list uploaded projects
 - `POST /api/projects/upload-zip` - upload a zip project
+- `POST /api/projects/import-github?repo_url=...` - import project from GitHub URL
 - `GET /api/projects/{project_name}/analyze` - analyze Java project
 - `POST /api/projects/{project_name}/modernize?skip_dead_code=true` - run modernization
 - `GET /api/output` - list output projects

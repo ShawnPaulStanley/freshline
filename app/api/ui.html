@@ -5,51 +5,226 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>FreshLine</title>
   <style>
-    body { font-family: Arial, sans-serif; margin: 0; background: #f6f7f9; color: #1f2937; }
-    .container { max-width: 960px; margin: 24px auto; padding: 0 16px; }
-    h1 { margin: 0 0 12px; }
-    .card { background: #fff; border: 1px solid #e5e7eb; border-radius: 8px; padding: 16px; margin-bottom: 12px; }
-    .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
-    input[type="file"], select, button { padding: 8px; }
-    button { cursor: pointer; }
-    pre { white-space: pre-wrap; background: #111827; color: #e5e7eb; padding: 12px; border-radius: 8px; min-height: 180px; }
-    .muted { color: #6b7280; font-size: 14px; }
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+    :root {
+      --bg: #f3f5f9;
+      --card: #ffffff;
+      --line: #e6e9f0;
+      --text: #1b2330;
+      --muted: #5f6d82;
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --surface: #f8fafc;
+      --output: #0f172a;
+      --output-text: #e2e8f0;
+      --radius: 14px;
+      --shadow: 0 8px 28px rgba(2, 6, 23, 0.06);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      background: linear-gradient(180deg, #eef2ff 0, var(--bg) 220px);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 1020px;
+      margin: 28px auto;
+      padding: 0 16px 24px;
+    }
+
+    .hero {
+      margin-bottom: 14px;
+    }
+
+    .title {
+      margin: 0;
+      font-size: clamp(2rem, 4vw, 2.5rem);
+      letter-spacing: -0.03em;
+      font-weight: 700;
+    }
+
+    .subtitle {
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 1.02rem;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 16px;
+      box-shadow: var(--shadow);
+    }
+
+    .card h3 {
+      margin: 0 0 12px;
+      font-size: 1.2rem;
+      letter-spacing: -0.01em;
+    }
+
+    .row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    input[type="text"],
+    input[type="file"],
+    select,
+    button {
+      font-family: inherit;
+      font-size: 0.95rem;
+      border-radius: 10px;
+      border: 1px solid #cfd6e4;
+      transition: all .15s ease;
+    }
+
+    input[type="text"],
+    select {
+      padding: 10px 12px;
+      background: #fff;
+      min-height: 42px;
+    }
+
+    input[type="file"] {
+      padding: 8px;
+      background: #fff;
+      min-height: 42px;
+    }
+
+    input[type="text"]:focus,
+    select:focus,
+    input[type="file"]:focus {
+      outline: none;
+      border-color: #93c5fd;
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.18);
+    }
+
+    button {
+      padding: 10px 14px;
+      min-height: 42px;
+      background: var(--surface);
+      color: var(--text);
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    button:hover {
+      border-color: #9ca9be;
+      transform: translateY(-1px);
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: #fff;
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-hover);
+      border-color: var(--primary-hover);
+    }
+
+    .muted {
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+
+    .spacer {
+      margin-top: 10px;
+    }
+
+    .output {
+      white-space: pre-wrap;
+      background: var(--output);
+      color: var(--output-text);
+      padding: 14px;
+      border-radius: 12px;
+      min-height: 230px;
+      border: 1px solid #1f2a44;
+      font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 0.87rem;
+      line-height: 1.5;
+    }
+
+    .split {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      align-items: center;
+    }
+
+    @media (max-width: 720px) {
+      .split {
+        grid-template-columns: 1fr;
+      }
+
+      input[type="text"],
+      select {
+        width: 100%;
+      }
+    }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>FreshLine</h1>
-    <p class="muted">Upload a Java project zip, analyze it, and modernize it to Python.</p>
+    <div class="hero">
+      <h1 class="title">FreshLine</h1>
+      <p class="subtitle">Modernize Java projects to Python with a clean, guided workflow.</p>
+    </div>
 
-    <div class="card">
-      <h3>1) Upload project zip</h3>
+    <div class="grid">
+      <div class="card">
+      <h3>1) Add project</h3>
       <div class="row">
         <input id="zipFile" type="file" accept=".zip" />
-        <button id="uploadBtn">Upload</button>
+        <button id="uploadBtn" class="btn-primary">Upload Zip</button>
         <span id="uploadInfo" class="muted"></span>
       </div>
-    </div>
+      <div class="row spacer">
+        <input id="repoUrl" type="text" placeholder="https://github.com/owner/repo" style="min-width: 360px;" />
+        <button id="importGithubBtn" class="btn-primary">Import GitHub</button>
+        <span id="githubInfo" class="muted"></span>
+      </div>
+      </div>
 
-    <div class="card">
+      <div class="card">
       <h3>2) Select project</h3>
-      <div class="row">
-        <select id="projectSelect" style="min-width: 260px"></select>
+      <div class="row split">
+        <select id="projectSelect" style="min-width: 260px; width: 100%;"></select>
         <button id="refreshBtn">Refresh Projects</button>
       </div>
-    </div>
-
-    <div class="card">
-      <h3>3) Run</h3>
-      <div class="row">
-        <label><input id="skipDead" type="checkbox" checked /> Skip dead code</label>
-        <button id="analyzeBtn">Analyze</button>
-        <button id="modernizeBtn">Modernize</button>
       </div>
-    </div>
 
-    <div class="card">
+      <div class="card">
+      <h3>3) Run</h3>
+      <div class="row split">
+        <label><input id="skipDead" type="checkbox" checked /> Skip dead code</label>
+        <div class="row">
+        <button id="analyzeBtn">Analyze</button>
+        <button id="modernizeBtn" class="btn-primary">Modernize</button>
+        </div>
+      </div>
+      </div>
+
+      <div class="card">
       <h3>Output</h3>
-      <pre id="output"></pre>
+      <pre id="output" class="output"></pre>
+      </div>
     </div>
   </div>
 
@@ -57,6 +232,7 @@
     const projectSelect = document.getElementById('projectSelect');
     const output = document.getElementById('output');
     const uploadInfo = document.getElementById('uploadInfo');
+    const githubInfo = document.getElementById('githubInfo');
 
     function print(data) {
       if (typeof data === 'string') {
@@ -121,6 +297,31 @@
       } catch (err) {
         uploadInfo.textContent = 'Upload failed';
         print(`Upload failed: ${err.message}`);
+      }
+    });
+
+    document.getElementById('importGithubBtn').addEventListener('click', async () => {
+      const repoUrlInput = document.getElementById('repoUrl');
+      const repoUrl = repoUrlInput.value.trim();
+      if (!repoUrl) {
+        print('Enter a GitHub repository URL first.');
+        return;
+      }
+
+      githubInfo.textContent = 'Importing...';
+      try {
+        const data = await api(`/api/projects/import-github?repo_url=${encodeURIComponent(repoUrl)}&overwrite=true`, {
+          method: 'POST'
+        });
+        githubInfo.textContent = `Imported: ${data.project_name} (${data.java_files} Java files)`;
+        await refreshProjects();
+        if (data.project_name) {
+          projectSelect.value = data.project_name;
+        }
+        print(data);
+      } catch (err) {
+        githubInfo.textContent = 'Import failed';
+        print(`GitHub import failed: ${err.message}`);
       }
     });
 
