@@ -4,28 +4,59 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+
+def _get_int(name: str, default: int) -> int:
+	value = os.getenv(name)
+	if value is None:
+		return default
+	try:
+		return int(value)
+	except ValueError:
+		return default
+
+
+def _get_float(name: str, default: float) -> float:
+	value = os.getenv(name)
+	if value is None:
+		return default
+	try:
+		return float(value)
+	except ValueError:
+		return default
+
+
+def _get_path(name: str, default: Path) -> Path:
+	value = os.getenv(name)
+	if value:
+		return Path(value)
+	return default
+
 # ── Groq LLM Config ──────────────────────────────────────────────
 GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
-GROQ_MODEL = "llama-3.3-70b-versatile"
-GROQ_MAX_TOKENS = 4096
-GROQ_TEMPERATURE = 0.1  # Low temp = more deterministic code output
+GROQ_MODEL = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
+GROQ_MAX_TOKENS = _get_int("GROQ_MAX_TOKENS", 4096)
+GROQ_TEMPERATURE = _get_float("GROQ_TEMPERATURE", 0.1)  # Low temp = more deterministic code output
 
 # ── Context Optimizer Config ─────────────────────────────────────
-MAX_CONTEXT_TOKENS = 6000       # Token budget for LLM context window
-DIRECT_DEP_WEIGHT = 1.0         # Weight for direct dependencies
-TRANSITIVE_DEP_WEIGHT = 0.5     # Weight for transitive deps (further = less weight)
-TYPE_ONLY_DEP_WEIGHT = 0.2      # Weight for type-only references
+MAX_CONTEXT_TOKENS = _get_int("MAX_CONTEXT_TOKENS", 6000)      # Token budget for LLM context window
+DIRECT_DEP_WEIGHT = _get_float("DIRECT_DEP_WEIGHT", 1.0)       # Weight for direct dependencies
+TRANSITIVE_DEP_WEIGHT = _get_float("TRANSITIVE_DEP_WEIGHT", 0.5)  # Weight for transitive deps (further = less weight)
+TYPE_ONLY_DEP_WEIGHT = _get_float("TYPE_ONLY_DEP_WEIGHT", 0.2)    # Weight for type-only references
 
 # ── Paths ─────────────────────────────────────────────────────────
 PROJECT_ROOT = Path(__file__).parent.parent
-UPLOADS_DIR = PROJECT_ROOT / "uploads"
-OUTPUT_DIR = PROJECT_ROOT / "output"
-SAMPLES_DIR = PROJECT_ROOT / "samples"
+UPLOADS_DIR = _get_path("UPLOADS_DIR", PROJECT_ROOT / "uploads")
+OUTPUT_DIR = _get_path("OUTPUT_DIR", PROJECT_ROOT / "output")
+SAMPLES_DIR = _get_path("SAMPLES_DIR", PROJECT_ROOT / "samples")
 
 # Create dirs if they don't exist
 UPLOADS_DIR.mkdir(exist_ok=True)
 OUTPUT_DIR.mkdir(exist_ok=True)
 
 # ── Dead Code Detection ──────────────────────────────────────────
-NOISE_COMMENT_THRESHOLD = 3     # Lines of consecutive comments = noise
-ENTRY_POINT_METHODS = {"main", "init", "run", "start", "execute"}
+NOISE_COMMENT_THRESHOLD = _get_int("NOISE_COMMENT_THRESHOLD", 3)     # Lines of consecutive comments = noise
+ENTRY_POINT_METHODS = {
+	item.strip()
+	for item in os.getenv("ENTRY_POINT_METHODS", "main,init,run,start,execute").split(",")
+	if item.strip()
+}

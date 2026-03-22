@@ -57,6 +57,17 @@ GROQ_API_KEY=gsk_your_actual_key_here
 python -m app.cli
 ```
 
+Or run the desktop GUI (no terminal menu):
+
+```bash
+python -m app.gui
+```
+
+Windows one-click option:
+
+- Double-click [run_gui.bat](run_gui.bat)
+- If dependencies are missing, the launcher installs `requirements.txt` automatically.
+
 You'll get an interactive terminal menu:
 
 ```
@@ -78,6 +89,16 @@ You'll get an interactive terminal menu:
 1. Pick **[5]** to copy the sample `banking-app` into `uploads/`
 2. Pick **[2]** to analyze it (see the dependency graph, dead code, noise ratio)
 3. Pick **[3]** to modernize it (converts to Python, outputs to `output/banking-app/`)
+
+### GUI Workflow
+
+If using the GUI (`python -m app.gui`):
+
+1. Click **Copy Sample**, **Import Folder...**, or **Import GitHub...**
+2. Select the project in the dropdown
+3. Click **Analyze**
+4. Click **Modernize**
+5. Open generated files in `output/`
 
 ---
 
