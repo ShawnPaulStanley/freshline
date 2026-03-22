@@ -474,9 +474,36 @@
         print('Select a project first.');
         return;
       }
-      setStatus(`Preparing download for ${project}...`);
-      window.location.href = `/api/projects/${encodeURIComponent(project)}/download-output`;
-      setStatus(`Download started for ${project}.`);
+
+      try {
+        setStatus(`Preparing download for ${project}...`);
+
+        const response = await fetch(`/api/projects/${encodeURIComponent(project)}/download-output`);
+        if (!response.ok) {
+          let detail = 'Download failed.';
+          try {
+            const errJson = await response.json();
+            detail = errJson.detail || detail;
+          } catch (_err) {
+          }
+          throw new Error(detail);
+        }
+
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${project}_output.zip`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(url);
+
+        setStatus(`Download started for ${project}.`);
+      } catch (err) {
+        setStatus('Download failed.');
+        print(`Download failed: ${err.message}\nHint: Run Modernize first, and avoid Cleanup before downloading.`);
+      }
     });
 
     document.getElementById('cleanupBtn').addEventListener('click', async () => {
