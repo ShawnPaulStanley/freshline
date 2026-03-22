@@ -95,6 +95,8 @@ Web UI flow:
 2. Upload Java project zip or import a GitHub repository URL
 3. Select project
 4. Click Analyze or Modernize
+5. Click Download Output to get a zip
+6. Click Cleanup Storage to delete uploaded/output files from server
 
 You'll get an interactive terminal menu:
 
@@ -136,6 +138,8 @@ If using the GUI (`python -m app.gui`):
 - `POST /api/projects/import-github?repo_url=...` - import project from GitHub URL
 - `GET /api/projects/{project_name}/analyze` - analyze Java project
 - `POST /api/projects/{project_name}/modernize?skip_dead_code=true` - run modernization
+- `GET /api/projects/{project_name}/download-output` - download modernized output zip
+- `DELETE /api/projects/{project_name}/storage` - delete project input/output from server storage
 - `GET /api/output` - list output projects
 
 ---

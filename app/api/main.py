@@ -2,14 +2,15 @@ from __future__ import annotations
 
 import shutil
 import subprocess
+import tempfile
 import zipfile
 from dataclasses import asdict, is_dataclass
 from pathlib import Path
 from typing import Any
 
-from fastapi import FastAPI, File, HTTPException, Query, UploadFile
+from fastapi import BackgroundTasks, FastAPI, File, HTTPException, Query, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse
 
 from app.config import OUTPUT_DIR, UPLOADS_DIR
 from app.engine.modernizer import analyze_project, modernize_project
@@ -46,6 +47,13 @@ def _project_path(project_name: str) -> Path:
 
 def _java_file_count(project_dir: Path) -> int:
     return sum(1 for _ in project_dir.rglob("*.java"))
+
+
+def _zip_directory(source_dir: Path, zip_path: Path) -> None:
+    with zipfile.ZipFile(zip_path, "w", compression=zipfile.ZIP_DEFLATED) as archive:
+        for file_path in source_dir.rglob("*"):
+            if file_path.is_file():
+                archive.write(file_path, arcname=file_path.relative_to(source_dir))
 
 
 def _repo_name_from_url(repo_url: str) -> str:
@@ -230,4 +238,50 @@ def list_output_projects() -> dict[str, Any]:
     return {
         "projects": outputs,
         "count": len(outputs),
+    }
+
+
+@app.get("/api/projects/{project_name}/download-output")
+def download_output(project_name: str, background_tasks: BackgroundTasks) -> FileResponse:
+    safe_name = Path(project_name).name
+    output_dir = OUTPUT_DIR / safe_name
+
+    if not output_dir.exists() or not output_dir.is_dir():
+        raise HTTPException(status_code=404, detail=f"Output for '{project_name}' not found")
+
+    temp_file = tempfile.NamedTemporaryFile(prefix=f"freshline_{safe_name}_", suffix=".zip", delete=False)
+    temp_file_path = Path(temp_file.name)
+    temp_file.close()
+
+    _zip_directory(output_dir, temp_file_path)
+    background_tasks.add_task(lambda p: Path(p).unlink(missing_ok=True), str(temp_file_path))
+
+    return FileResponse(
+        path=temp_file_path,
+        media_type="application/zip",
+        filename=f"{safe_name}_output.zip",
+    )
+
+
+@app.delete("/api/projects/{project_name}/storage")
+def cleanup_storage(project_name: str) -> dict[str, Any]:
+    safe_name = Path(project_name).name
+    project_dir = UPLOADS_DIR / safe_name
+    output_dir = OUTPUT_DIR / safe_name
+
+    deleted_upload = False
+    deleted_output = False
+
+    if project_dir.exists() and project_dir.is_dir():
+        shutil.rmtree(project_dir)
+        deleted_upload = True
+
+    if output_dir.exists() and output_dir.is_dir():
+        shutil.rmtree(output_dir)
+        deleted_output = True
+
+    return {
+        "project_name": safe_name,
+        "deleted_upload": deleted_upload,
+        "deleted_output": deleted_output,
     }
